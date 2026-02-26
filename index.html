@@ -3,111 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متتبع العادات</title>
+    <title>متتبع العادات الاحترافي</title>
     <style>
-        :root { --bg: #f0f2f5; --card: #ffffff; --primary: #4caf50; --secondary: #f44336; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        h2 { color: #333; margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; width: 100%; max-width: 350px; background: var(--card); padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .day { aspect-ratio: 1; background: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: all 0.3s; position: relative; font-weight: bold; color: #777; }
+        :root { --bg: #f4f7f6; --card: #ffffff; --primary: #4caf50; --secondary: #f44336; --accent: #2196F3; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; width: 100%; max-width: 360px; background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .day { aspect-ratio: 1; background: #eee; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: 0.2s; font-weight: bold; position: relative; color: #666; }
         .day.checked { background: var(--primary); color: white; }
-        .day.checked::after { content: "✓"; }
         .day.crossed { background: var(--secondary); color: white; }
-        .day.crossed::after { content: "✕"; }
-        .controls { margin-top: 20px; width: 100%; max-width: 350px; background: var(--card); padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        input[type="time"] { padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; margin: 10px 0; width: 80%; }
-        button { background: #2196F3; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; }
-        button:active { transform: scale(0.95); }
+        
+        .controls { margin-top: 20px; width: 100%; max-width: 360px; background: var(--card); padding: 20px; border-radius: 15px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        input, textarea, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-family: inherit; }
+        button { background: var(--accent); color: white; font-weight: bold; cursor: pointer; border: none; font-size: 16px; }
+
+        .history-list { margin-top: 20px; width: 100%; max-width: 360px; background: var(--card); border-radius: 15px; padding: 20px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .history-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; font-size: 14px; }
+        .status-tag { padding: 3px 8px; border-radius: 5px; color: white; font-weight: bold; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <h2>مفكرة العادات اليومية</h2>
+    <h2>متتبع العادات</h2>
     <div class="grid" id="habitGrid"></div>
 
     <div class="controls">
-        <p>تذكير يومي في الساعة:</p>
+        <label>عدد الأيام:</label>
+        <input type="number" id="daysCount" value="30">
+        <label>نص الإشعار:</label>
+        <textarea id="notifText" rows="2"></textarea>
+        <label>وقت التنبيه:</label>
         <input type="time" id="notifTime">
-        <br>
         <button onclick="saveSettings()">حفظ الإعدادات</button>
+    </div>
+
+    <div class="history-list">
+        <h3 style="text-align:center">سجل الإنجازات بالتاريخ</h3>
+        <div id="listContainer"></div>
     </div>
 
     <script>
         const grid = document.getElementById('habitGrid');
+        const listContainer = document.getElementById('listContainer');
+        const daysInput = document.getElementById('daysCount');
         const timeInput = document.getElementById('notifTime');
-        const STORAGE_KEY = 'habit_data_v1';
-        
-        // تحميل البيانات المحفوظة
-        let habitData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-        timeInput.value = localStorage.getItem('notif_time') || "20:00";
+        const textInput = document.getElementById('notifText');
 
-        // إنشاء شبكة لـ 35 مربع (تغطي شهراً كاملاً)
-        for (let i = 1; i <= 35; i++) {
-            const day = document.createElement('div');
-            day.className = 'day';
-            day.innerText = i;
-            
-            // استعادة الحالة السابقة
-            if (habitData[i] === 'check') day.classList.add('checked');
-            if (habitData[i] === 'cross') day.classList.add('crossed');
+        // habitRecord سيخزن: { "1": { status: "check", date: "26/02/2026" } }
+        let habitRecord = JSON.parse(localStorage.getItem('habit_record_final')) || {};
+        daysInput.value = localStorage.getItem('conf_days') || 30;
+        timeInput.value = localStorage.getItem('conf_time') || "21:00";
+        textInput.value = localStorage.getItem('conf_text') || "سجل إنجازك الآن!";
 
-            let timer;
-            day.addEventListener('click', () => {
-                if (timer) clearTimeout(timer);
-                timer = setTimeout(() => {
-                    // ضغطة واحدة
-                    toggleState(day, i, 'check');
-                }, 250);
-            });
+        function render() {
+            grid.innerHTML = '';
+            listContainer.innerHTML = '';
+            const total = parseInt(daysInput.value);
 
-            day.addEventListener('dblclick', (e) => {
-                clearTimeout(timer);
-                // ضغطتان
-                toggleState(day, i, 'cross');
-            });
+            for (let i = 1; i <= total; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'day';
+                dayEl.innerText = i;
 
-            grid.appendChild(day);
+                if (habitRecord[i]) {
+                    dayEl.classList.add(habitRecord[i].status === 'check' ? 'checked' : 'crossed');
+                    
+                    // إضافة للسجل السفلي
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    const color = habitRecord[i].status === 'check' ? '#4caf50' : '#f44336';
+                    const text = habitRecord[i].status === 'check' ? 'تم' : 'فشل';
+                    item.innerHTML = `<span>مربع ${i} - ${habitRecord[i].date}</span> 
+                                     <span class="status-tag" style="background:${color}">${text}</span>`;
+                    listContainer.prepend(item);
+                }
+
+                let timer;
+                dayEl.onclick = () => {
+                    if (timer) clearTimeout(timer);
+                    timer = setTimeout(() => updateStatus(i, 'check'), 250);
+                };
+                dayEl.ondblclick = (e) => {
+                    e.preventDefault();
+                    clearTimeout(timer);
+                    updateStatus(i, 'cross');
+                };
+                grid.appendChild(dayEl);
+            }
         }
 
-        function toggleState(el, index, type) {
-            if (type === 'check') {
-                el.classList.toggle('checked');
-                el.classList.remove('crossed');
+        function updateStatus(id, status) {
+            const today = new Date().toLocaleDateString('en-GB'); // التاريخ اللحظي
+            
+            if (habitRecord[id] && habitRecord[id].status === status) {
+                delete habitRecord[id];
             } else {
-                el.classList.toggle('crossed');
-                el.classList.remove('checked');
+                habitRecord[id] = { status: status, date: today };
             }
             
-            // حفظ الحالة
-            if (el.classList.contains('checked')) habitData[index] = 'check';
-            else if (el.classList.contains('crossed')) habitData[index] = 'cross';
-            else delete habitData[index];
-            
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(habitData));
+            localStorage.setItem('habit_record_final', JSON.stringify(habitRecord));
+            render();
         }
 
         function saveSettings() {
-            localStorage.setItem('notif_time', timeInput.value);
-            alert("تم حفظ وقت التذكير!");
-            
-            if ("Notification" in window) {
-                Notification.requestPermission();
-            }
+            localStorage.setItem('conf_days', daysInput.value);
+            localStorage.setItem('conf_time', timeInput.value);
+            localStorage.setItem('conf_text', textInput.value);
+            alert("تم الحفظ!");
+            render();
+            if ("Notification" in window) Notification.requestPermission();
         }
 
-        // فحص الوقت كل دقيقة للإشعار
         setInterval(() => {
             const now = new Date();
-            const current = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-            const target = localStorage.getItem('notif_time');
-            
-            if (current === target) {
-                new Notification("سجل عادتك الآن!", { 
-                    body: "لا تنسَ وضع علامة (صح) أو (خطأ) لليوم!",
-                    icon: "https://cdn-icons-png.flaticon.com/512/1067/1067357.png"
-                });
+            const cur = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            if (cur === localStorage.getItem('conf_time') && now.getSeconds() === 0) {
+                new Notification(now.toLocaleDateString('en-GB'), { body: localStorage.getItem('conf_text') });
             }
-        }, 60000);
+        }, 1000);
+
+        render();
     </script>
 </body>
 </html>
