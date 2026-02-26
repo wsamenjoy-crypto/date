@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متتبع العادات</title>
+    <style>
+        :root { --bg: #f0f2f5; --card: #ffffff; --primary: #4caf50; --secondary: #f44336; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        h2 { color: #333; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; width: 100%; max-width: 350px; background: var(--card); padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .day { aspect-ratio: 1; background: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: all 0.3s; position: relative; font-weight: bold; color: #777; }
+        .day.checked { background: var(--primary); color: white; }
+        .day.checked::after { content: "✓"; }
+        .day.crossed { background: var(--secondary); color: white; }
+        .day.crossed::after { content: "✕"; }
+        .controls { margin-top: 20px; width: 100%; max-width: 350px; background: var(--card); padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        input[type="time"] { padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; margin: 10px 0; width: 80%; }
+        button { background: #2196F3; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        button:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <h2>مفكرة العادات اليومية</h2>
+    <div class="grid" id="habitGrid"></div>
+
+    <div class="controls">
+        <p>تذكير يومي في الساعة:</p>
+        <input type="time" id="notifTime">
+        <br>
+        <button onclick="saveSettings()">حفظ الإعدادات</button>
+    </div>
+
+    <script>
+        const grid = document.getElementById('habitGrid');
+        const timeInput = document.getElementById('notifTime');
+        const STORAGE_KEY = 'habit_data_v1';
+        
+        // تحميل البيانات المحفوظة
+        let habitData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+        timeInput.value = localStorage.getItem('notif_time') || "20:00";
+
+        // إنشاء شبكة لـ 35 مربع (تغطي شهراً كاملاً)
+        for (let i = 1; i <= 35; i++) {
+            const day = document.createElement('div');
+            day.className = 'day';
+            day.innerText = i;
+            
+            // استعادة الحالة السابقة
+            if (habitData[i] === 'check') day.classList.add('checked');
+            if (habitData[i] === 'cross') day.classList.add('crossed');
+
+            let timer;
+            day.addEventListener('click', () => {
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(() => {
+                    // ضغطة واحدة
+                    toggleState(day, i, 'check');
+                }, 250);
+            });
+
+            day.addEventListener('dblclick', (e) => {
+                clearTimeout(timer);
+                // ضغطتان
+                toggleState(day, i, 'cross');
+            });
+
+            grid.appendChild(day);
+        }
+
+        function toggleState(el, index, type) {
+            if (type === 'check') {
+                el.classList.toggle('checked');
+                el.classList.remove('crossed');
+            } else {
+                el.classList.toggle('crossed');
+                el.classList.remove('checked');
+            }
+            
+            // حفظ الحالة
+            if (el.classList.contains('checked')) habitData[index] = 'check';
+            else if (el.classList.contains('crossed')) habitData[index] = 'cross';
+            else delete habitData[index];
+            
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(habitData));
+        }
+
+        function saveSettings() {
+            localStorage.setItem('notif_time', timeInput.value);
+            alert("تم حفظ وقت التذكير!");
+            
+            if ("Notification" in window) {
+                Notification.requestPermission();
+            }
+        }
+
+        // فحص الوقت كل دقيقة للإشعار
+        setInterval(() => {
+            const now = new Date();
+            const current = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const target = localStorage.getItem('notif_time');
+            
+            if (current === target) {
+                new Notification("سجل عادتك الآن!", { 
+                    body: "لا تنسَ وضع علامة (صح) أو (خطأ) لليوم!",
+                    icon: "https://cdn-icons-png.flaticon.com/512/1067/1067357.png"
+                });
+            }
+        }, 60000);
+    </script>
+</body>
+</html>
