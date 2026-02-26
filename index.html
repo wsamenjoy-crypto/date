@@ -2,54 +2,51 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مُتتبع العادات</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>تطبيق العادات</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#2196F3">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1067/1067357.png">
     
-    <link rel="manifest" href="data:application/manifest+json,{'name':'تطبيق العادات','short_name':'عاداتي','start_url':'index.html','display':'standalone','background_color':'#ffffff','theme_color':'#2196F3','icons':[{'src':'https://cdn-icons-png.flaticon.com/512/1067/1067357.png','sizes':'512x512','type':'image/png'}]}">
+    <link rel="manifest" href="data:application/manifest+json,{'name':'تطبيق العادات','short_name':'عاداتي','start_url':'index.html','display':'standalone','background_color':'#f4f7f6','theme_color':'#2196F3','icons':[{'src':'https://cdn-icons-png.flaticon.com/512/1067/1067357.png','sizes':'512x512','type':'image/png'}]}">
 
     <style>
-        :root { --bg: #f8f9fa; --card: #ffffff; --primary: #4caf50; --secondary: #f44336; --accent: #2196F3; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
-        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; width: 100%; max-width: 380px; background: var(--card); padding: 15px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        .day { aspect-ratio: 1; background: #f0f0f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 15px; cursor: pointer; transition: 0.2s; font-weight: bold; color: #555; position: relative; }
+        :root { --bg: #f4f7f6; --card: #ffffff; --primary: #4caf50; --secondary: #f44336; --accent: #2196F3; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; padding-top: env(safe-area-inset-top); }
+        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; width: 100%; max-width: 360px; background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 10px; }
+        .day { aspect-ratio: 1; background: #eee; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: 0.2s; font-weight: bold; position: relative; color: #666; }
         .day.checked { background: var(--primary); color: white; }
         .day.crossed { background: var(--secondary); color: white; }
-        .controls { margin-top: 15px; width: 100%; max-width: 380px; background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); box-sizing: border-box; }
-        label { display: block; margin: 10px 0 5px; font-size: 13px; color: #888; }
-        input, textarea, button { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #eee; box-sizing: border-box; font-size: 15px; }
-        button { background: var(--accent); color: white; border: none; font-weight: bold; margin-top: 10px; }
-        .history-list { margin-top: 15px; width: 100%; max-width: 380px; background: var(--card); border-radius: 20px; padding: 20px; box-sizing: border-box; margin-bottom: 40px; }
-        .history-item { border-bottom: 1px solid #f9f9f9; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
+        .controls { margin-top: 20px; width: 100%; max-width: 360px; background: var(--card); padding: 20px; border-radius: 15px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        input, textarea, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-family: inherit; font-size: 16px; }
+        button { background: var(--accent); color: white; font-weight: bold; cursor: pointer; border: none; }
+        .history-list { margin-top: 20px; width: 100%; max-width: 360px; background: var(--card); border-radius: 15px; padding: 20px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 50px;}
+        .history-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; font-size: 14px; }
+        .status-tag { padding: 3px 8px; border-radius: 5px; color: white; font-weight: bold; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <h2 style="margin: 10px 0 20px;">عاداتي اليومية</h2>
-    
+    <h2>متتبع العادات</h2>
     <div class="grid" id="habitGrid"></div>
-
     <div class="controls">
-        <label>عدد الأيام المتاحة:</label>
+        <label>عدد الأيام:</label>
         <input type="number" id="daysCount" value="30">
-        <label>نص التذكير:</label>
+        <label>نص الإشعار:</label>
         <textarea id="notifText" rows="2"></textarea>
         <label>وقت التنبيه:</label>
         <input type="time" id="notifTime">
         <button onclick="saveSettings()">حفظ الإعدادات</button>
     </div>
-
     <div class="history-list">
-        <h3 style="text-align:center; font-size: 16px;">سجل التواريخ</h3>
+        <h3 style="text-align:center">سجل الإنجازات</h3>
         <div id="listContainer"></div>
     </div>
 
     <script>
-        // تسجيل الـ Service Worker لجعل المتصفح يراه كتطبيق
+        // كود تفعيل الـ Service Worker (ضروري للتثبيت)
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
@@ -60,10 +57,10 @@
         const timeInput = document.getElementById('notifTime');
         const textInput = document.getElementById('notifText');
 
-        let habitRecord = JSON.parse(localStorage.getItem('habit_final_store')) || {};
-        daysInput.value = localStorage.getItem('c_days') || 30;
-        timeInput.value = localStorage.getItem('c_time') || "21:00";
-        textInput.value = localStorage.getItem('c_text') || "سجل إنجازك الآن!";
+        let habitRecord = JSON.parse(localStorage.getItem('habit_record_final')) || {};
+        daysInput.value = localStorage.getItem('conf_days') || 30;
+        timeInput.value = localStorage.getItem('conf_time') || "21:00";
+        textInput.value = localStorage.getItem('conf_text') || "سجل إنجازك الآن!";
 
         function render() {
             grid.innerHTML = '';
@@ -77,8 +74,9 @@
                     dayEl.classList.add(habitRecord[i].status === 'check' ? 'checked' : 'crossed');
                     const item = document.createElement('div');
                     item.className = 'history-item';
-                    const icon = habitRecord[i].status === 'check' ? '✅' : '❌';
-                    item.innerHTML = `<span>مربع ${i} - ${habitRecord[i].date}</span> <span>${icon}</span>`;
+                    const color = habitRecord[i].status === 'check' ? '#4caf50' : '#f44336';
+                    const text = habitRecord[i].status === 'check' ? 'تم' : 'فشل';
+                    item.innerHTML = `<span>مربع ${i} - ${habitRecord[i].date}</span> <span class="status-tag" style="background:${color}">${text}</span>`;
                     listContainer.prepend(item);
                 }
                 let timer;
@@ -92,14 +90,14 @@
             const today = new Date().toLocaleDateString('en-GB');
             if (habitRecord[id] && habitRecord[id].status === status) delete habitRecord[id];
             else habitRecord[id] = { status: status, date: today };
-            localStorage.setItem('habit_final_store', JSON.stringify(habitRecord));
+            localStorage.setItem('habit_record_final', JSON.stringify(habitRecord));
             render();
         }
 
         function saveSettings() {
-            localStorage.setItem('c_days', daysInput.value);
-            localStorage.setItem('c_time', timeInput.value);
-            localStorage.setItem('c_text', textInput.value);
+            localStorage.setItem('conf_days', daysInput.value);
+            localStorage.setItem('conf_time', timeInput.value);
+            localStorage.setItem('conf_text', textInput.value);
             alert("تم الحفظ!");
             render();
             if ("Notification" in window) Notification.requestPermission();
@@ -108,8 +106,8 @@
         setInterval(() => {
             const now = new Date();
             const cur = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-            if (cur === localStorage.getItem('c_time') && now.getSeconds() === 0) {
-                new Notification(now.toLocaleDateString('en-GB'), { body: localStorage.getItem('c_text') });
+            if (cur === localStorage.getItem('conf_time') && now.getSeconds() === 0) {
+                new Notification(now.toLocaleDateString('en-GB'), { body: localStorage.getItem('conf_text') });
             }
         }, 1000);
         render();
